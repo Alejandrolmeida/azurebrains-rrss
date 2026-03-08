@@ -1,7 +1,9 @@
 # Azurebrains RRSS — Plan de Proyecto
 
 Publicador automático multicanal para el ecosistema Azurebrains.  
-Detecta nuevo contenido (posts y noticias) generado por el blog y lo anuncia de forma autónoma en **X, LinkedIn, Instagram y Facebook**.
+Detecta nuevo contenido (posts y noticias) generado por el blog y lo anuncia de forma autónoma en **X, LinkedIn, Facebook e Instagram**.
+
+> **Estado de cuentas (marzo 2026)**: X ✅, LinkedIn ✅ y Facebook ✅ existen bajo la marca Azurebrains pero necesitan un **lavado de cara visual** (logo, banner, bio). Instagram ⚠️ — estado pendiente de confirmar.
 
 ---
 
@@ -171,47 +173,93 @@ El workflow del blog generará en cada build un fichero `_site/manifest.json`:
 
 ## Restricciones por plataforma (resumen operativo)
 
-| Plataforma | Endpoint principal | Rate limit | Formato imagen | Límite copy |
-|------------|-------------------|------------|----------------|-------------|
-| **X** | `POST /2/tweets` | 100/15 min por usuario | JPG/PNG/WEBP ≤5 MB | 280 chars |
-| **LinkedIn** | `POST /rest/posts` | No publicado (portal) | URN tras subida | 3.000 chars |
-| **Instagram** | `POST /{igUserId}/media` + `media_publish` | 100 API posts/24h | JPEG, 4:5→1.91:1 ratio, ≤8 MB | 2.200 chars + ≤30 hashtags |
-| **Facebook** | `POST /{page-id}/feed` | >200 llamadas/h límite app | URL pública (cURL por Meta) | Sin límite práctico |
+| Plataforma | Endpoint principal | Rate limit | Formato imagen | Límite copy | Cuenta |
+|------------|-------------------|------------|----------------|-------------|--------|
+| **X** | `POST /2/tweets` | 100/15 min por usuario | JPG/PNG/WEBP ≤5 MB | 280 chars | ✅ Existe (revisar visual) |
+| **LinkedIn** | `POST /rest/posts` | No publicado (portal) | URN tras subida | 3.000 chars | ✅ Existe (revisar visual) |
+| **Facebook** | `POST /{page-id}/feed` | >200 llamadas/h límite app | URL pública (cURL por Meta) | Sin límite práctico | ✅ Existe (revisar visual) |
+| **Instagram** | `POST /{igUserId}/media` + `media_publish` | 100 API posts/24h | JPEG, 4:5→1.91:1 ratio, ≤8 MB | 2.200 chars + ≤30 hashtags | ⚠️ Por confirmar |
 
 ### Requisitos de cumplimiento por plataforma
 
 | Plataforma | Requisito | Acción previa |
 |------------|-----------|---------------|
-| X | OAuth 2.0 PKCE user-context; refresh token | Crear app en X Developer Portal y generar tokens |
-| LinkedIn | `w_member_social` + `w_organization_social`; cabecera `Linkedin-Version` | Crear app en LinkedIn Developers, aprobar permisos |
-| Instagram | App Review + Business Verification; cuenta profesional vinculada a Page | Completar App Review de Meta; verificar negocio |
-| Facebook | `pages_manage_posts`; Page Access Token | Integrado con el flujo de Meta (mismo App Review) |
+| X | OAuth 2.0 PKCE user-context; refresh token | ~~Crear cuenta~~ ✅ · Crear app en X Developer Portal y generar tokens |
+| LinkedIn | `w_member_social` + `w_organization_social`; cabecera `Linkedin-Version` | ~~Crear cuenta~~ ✅ · Crear app en LinkedIn Developers, aprobar permisos |
+| Facebook | `pages_manage_posts`; Page Access Token | ~~Crear Page~~ ✅ · Crear app en Meta y vincular Page existente |
+| Instagram | App Review + Business Verification; cuenta profesional vinculada a Page | ⚠️ Confirmar si existe cuenta; vincular a la Page de Facebook; App Review |
 
 ---
 
 ## Fases del proyecto
 
-### FASE 0 — Preparación y accesos (Semana 1)
-> Objetivo: tener accesos a las 4 APIs y los secretos en Key Vault.
+### FASE 0 — Preparación, lavado de cara y accesos (Semana 1)
+> Objetivo: identidad visual unificada en las 3 redes confirmadas + accesos API + secretos en Key Vault.
 
-- [ ] **0.1** Crear aplicación en X Developer Portal
-  - OAuth 2.0 user-context habilitado
+#### 0.A — Lavado de cara visual (previo a cualquier publicación automatizada)
+
+> Las cuentas de X, LinkedIn y Facebook existen pero seguramente tienen imagen desactualizada. Antes de publicar con el agente, conviene que las cuentas ya representen bien la marca.
+
+- [ ] **0.A.1** Auditar estado actual de las 3 cuentas
+  - Anotar: foto de perfil, banner/portada, bio/descripción, URL, nombre de usuario
+  - Captura de pantalla del estado actual (referencia antes/después)
+
+- [ ] **0.A.2** Preparar assets visuales de marca Azurebrains
+  - **Logo**: versión cuadrada 400×400px (foto de perfil) y versión horizontal para banner
+  - **Banner X**: 1500×500px — fondo de color de marca + tagline + URL del blog
+  - **Banner LinkedIn**: 1584×396px — mismo estilo
+  - **Portada Facebook**: 820×312px — mismo estilo
+  - Fuente y paleta: las mismas que usa el blog (verificar en `_sass/` del blog)
+  - Herramienta sugerida: Canva con plantillas o generación con `gpt-image-1` + edición
+
+- [ ] **0.A.3** Actualizar perfil en **X** (`@azurebrains` o handle actual)
+  - Subir foto de perfil y banner nuevos
+  - Bio: máx. 160 chars — ej. _"Blog técnico sobre Azure AI, RAG y arquitectura multi-agente. Contenido generado por 6 agentes de IA 🤖 blog.azurebrains.com"_
+  - URL: `https://blog.azurebrains.com`
+  - Localización: Spain
+
+- [ ] **0.A.4** Actualizar perfil en **LinkedIn** (Page o perfil personal)
+  - Subir logo y banner
+  - Descripción de empresa / tagline alineado con el blog
+  - URL del sitio web: `https://blog.azurebrains.com`
+  - Confirmar si es **Company Page** (requerida para `w_organization_social`) o perfil personal
+
+- [ ] **0.A.5** Actualizar perfil en **Facebook Page**
+  - Foto de perfil y portada
+  - Descripción corta y larga
+  - URL del blog en el campo "Sitio web"
+  - Verificar que la Page es de tipo "Blog" o "Tecnología"
+
+- [ ] **0.A.6** Confirmar y preparar **Instagram**
+  - ⚠️ Verificar si existe cuenta de Instagram para Azurebrains
+  - Si existe: convertir a cuenta **profesional/Business** y vincular a la Facebook Page
+  - Si no existe: crear cuenta Business directamente vinculada a la Page
+  - Actualizar bio, link in bio (`blog.azurebrains.com`), foto de perfil
+
+---
+
+#### 0.B — Registro de aplicaciones y accesos API
+
+- [ ] **0.B.1** Crear aplicación en X Developer Portal
+  - OAuth 2.0 user-context habilitado (la cuenta ya existe ✅)
   - Generar `X_ACCESS_TOKEN` y `X_REFRESH_TOKEN`
   - Guardar en `kv-azrbrnsblog`: `rrss-x-access-token`, `rrss-x-refresh-token`, `rrss-x-api-key`, `rrss-x-api-secret`
 
-- [ ] **0.2** Crear aplicación en LinkedIn Developers
+- [ ] **0.B.2** Crear aplicación en LinkedIn Developers
+  - La cuenta/Page ya existe ✅
   - Permisos: `w_member_social`, `w_organization_social`
   - Producto: "Share on LinkedIn" + "Marketing Developer Platform" (si aplica)
   - Guardar en `kv-azrbrnsblog`: `rrss-linkedin-access-token`, `rrss-linkedin-client-id`, `rrss-linkedin-client-secret`
   - Anotar `LINKEDIN_AUTHOR_URN` (person o organization)
 
-- [ ] **0.3** Crear aplicación en Meta (Instagram + Facebook)
-  - Tipos de permisos: `instagram_basic`, `instagram_content_publish`, `pages_manage_posts`, `pages_read_engagement`
+- [ ] **0.B.3** Crear aplicación en Meta (Facebook + Instagram)
+  - La Facebook Page ya existe ✅; Instagram por confirmar (0.A.6)
+  - Permisos: `instagram_basic`, `instagram_content_publish`, `pages_manage_posts`, `pages_read_engagement`
   - App Mode: Development → solicitar Standard Access cuando MVP validado
   - Guardar en `kv-azrbrnsblog`: `rrss-meta-access-token`, `rrss-meta-page-id`, `rrss-meta-ig-user-id`
-  - Planificar Business Verification (requerida para Standard Access)
+  - Planificar Business Verification (requerida para Standard Access en Instagram)
 
-- [ ] **0.4** Crear Blob Storage para media pública
+- [ ] **0.B.4** Crear Blob Storage para media pública
   ```bash
   az storage account create \
     --name stazrbrnsmedia \
@@ -226,13 +274,13 @@ El workflow del blog generará en cada build un fichero `_site/manifest.json`:
     --public-access blob
   ```
 
-- [ ] **0.5** Crear colección `rrss` en Cosmos DB existente
+- [ ] **0.B.5** Crear colección `rrss` en Cosmos DB existente
   - Cosmos: `cosmos-azurebrains-chat-hlnywnla`
   - Base de datos: `azurebrains` (o crear `rrss-db`)
   - Contenedores: `content_items` y `delivery_jobs`
   - Partition key: `/platform` (delivery_jobs) y `/content_type` (content_items)
 
-- [ ] **0.6** Configurar GitHub Actions secrets en `azurebrains-rrss`
+- [ ] **0.B.6** Configurar GitHub Actions secrets en `azurebrains-rrss`
   - `AZURE_CLIENT_ID`, `AZURE_TENANT_ID`, `AZURE_SUBSCRIPTION_ID` (OIDC)
   - `KEY_VAULT_NAME=kv-azrbrnsblog`
 

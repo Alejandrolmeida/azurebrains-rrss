@@ -71,4 +71,5 @@ az deployment sub create \
 ## Documentación
 
 - [PLAN.md](PLAN.md) — Planificación completa del proyecto
-- [deep-research-report.md](https://github.com/Alejandrolmeida/azurebrains-blog/blob/main/docs/rrss/deep-research-report.md) — Investigación técnica previa de viabilidad
+- [docs/deep-research-report.md](docs/deep-research-report.md) — Investigación técnica previa de viabilidad
+- [docs/viabilidad-rrss-research.pdf](docs/viabilidad-rrss-research.pdf) — Informe PDF de viabilidad original

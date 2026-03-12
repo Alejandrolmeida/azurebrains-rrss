@@ -1,0 +1,36 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environment": {
+      "value": "prod"
+    },
+    "location": {
+      "value": "spaincentral"
+    },
+    "acrName": {
+      "value": "mcrazurebrainsblogprod"
+    },
+    "keyVaultName": {
+      "value": "kv-azrbrnsblog"
+    },
+    "keyVaultResourceGroup": {
+      "value": "azurebrains-blog"
+    },
+    "cosmosAccountName": {
+      "value": "cosmos-azurebrains-chat-hlnywnla"
+    },
+    "cosmosResourceGroup": {
+      "value": "rg-azurebrains-chatapp"
+    },
+    "tags": {
+      "value": {
+        "Project": "azurebrains-rrss",
+        "Environment": "Production",
+        "ManagedBy": "Bicep",
+        "Owner": "alejandro@globalai.es",
+        "CostCenter": "blog"
+      }
+    }
+  }
+}

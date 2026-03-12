@@ -1,0 +1,98 @@
+name: Publish to Social Media
+
+on:
+  # Disparado por el workflow announce.yml del blog via repository_dispatch
+  repository_dispatch:
+    types: [new-content-published]
+
+  # Disparo manual para testing o publicación puntual
+  workflow_dispatch:
+    inputs:
+      item_json:
+        description: 'JSON del content_item a publicar (opcional, si está vacío usa el manifest)'
+        required: false
+        default: ''
+      manifest_url:
+        description: 'URL del manifest del blog'
+        required: false
+        default: 'https://blog.azurebrains.com/manifest.json'
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  publish:
+    name: Publish Content
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Set item JSON from dispatch payload
+        id: payload
+        run: |
+          if [[ "${{ github.event_name }}" == "repository_dispatch" ]]; then
+            echo "item_json=${{ toJson(github.event.client_payload.item) }}" >> "$GITHUB_OUTPUT"
+          elif [[ -n "${{ inputs.item_json }}" ]]; then
+            echo "item_json=${{ inputs.item_json }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "item_json=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Publish content item
+        env:
+          # Azure OpenAI
+          AZURE_OPENAI_ENDPOINT: ${{ secrets.AZURE_OPENAI_ENDPOINT }}
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          AZURE_OPENAI_COPY_MODEL: ${{ vars.AZURE_OPENAI_COPY_MODEL || 'gpt-4o-mini' }}
+          # Azure Storage
+          AZURE_STORAGE_ACCOUNT_NAME: ${{ secrets.AZURE_STORAGE_ACCOUNT_NAME }}
+          AZURE_STORAGE_CONNECTION_STRING: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          # Cosmos DB
+          COSMOS_ENDPOINT: ${{ secrets.COSMOS_ENDPOINT }}
+          COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
+          # X (Twitter)
+          X_API_KEY: ${{ secrets.X_API_KEY }}
+          X_API_SECRET: ${{ secrets.X_API_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_TOKEN_SECRET: ${{ secrets.X_ACCESS_TOKEN_SECRET }}
+          # LinkedIn
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          LINKEDIN_ORGANIZATION_URN: ${{ secrets.LINKEDIN_ORGANIZATION_URN }}
+          # Facebook
+          FACEBOOK_PAGE_ACCESS_TOKEN: ${{ secrets.FACEBOOK_PAGE_ACCESS_TOKEN }}
+          FACEBOOK_PAGE_ID: ${{ secrets.FACEBOOK_PAGE_ID }}
+          # Instagram
+          INSTAGRAM_USER_ID: ${{ secrets.INSTAGRAM_USER_ID }}
+          INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
+          # Blog manifest
+          BLOG_MANIFEST_URL: ${{ inputs.manifest_url || 'https://blog.azurebrains.com/manifest.json' }}
+        run: |
+          if [[ -n "${{ steps.payload.outputs.item_json }}" ]]; then
+            echo "📢 Publicando content item individual..."
+            python -m src.main --item-json '${{ steps.payload.outputs.item_json }}'
+          else
+            echo "📋 Procesando manifest del blog..."
+            python -m src.main --manifest-url "$BLOG_MANIFEST_URL"
+          fi
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Error en la publicación de contenido. Revisar logs del workflow."
+          # TODO: Notificación vía Teams o email cuando esté configurado

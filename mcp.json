@@ -78,6 +78,18 @@
         "requiredEnvVars": ["TAVILY_API_KEY"]
       }
     },
+    "svg-mcp": {
+      "url": "https://app-azurebrains-svg-mcp-prod.azurewebsites.net/mcp/",
+      "headers": {
+        "Authorization": "Bearer ${SVG_MCP_AUTH_TOKEN}"
+      },
+      "metadata": {
+        "description": "Edición remota de SVG: validación, limpieza, recolor, favicons y normalización de exportaciones CorelDRAW",
+        "category": "design",
+        "requiredEnvVars": ["SVG_MCP_AUTH_TOKEN"],
+        "usedBy": ["web-designer", "azure-foundry"]
+      }
+    },
     "memory-mcp": {
       "command": "npx",
       "args": [

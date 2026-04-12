@@ -82,10 +82,12 @@ jobs:
           INSTAGRAM_ACCESS_TOKEN: ${{ secrets.INSTAGRAM_ACCESS_TOKEN }}
           # Blog manifest
           BLOG_MANIFEST_URL: ${{ inputs.manifest_url || 'https://blog.azurebrains.com/manifest.json' }}
+          # item_json se pasa por env var para evitar inyección de comandos via interpolación
+          ITEM_JSON: ${{ steps.payload.outputs.item_json }}
         run: |
-          if [[ -n "${{ steps.payload.outputs.item_json }}" ]]; then
+          if [[ -n "$ITEM_JSON" ]]; then
             echo "📢 Publicando content item individual..."
-            python -m src.main --item-json '${{ steps.payload.outputs.item_json }}'
+            python -m src.main --item-json "$ITEM_JSON"
           else
             echo "📋 Procesando manifest del blog..."
             python -m src.main --manifest-url "$BLOG_MANIFEST_URL"

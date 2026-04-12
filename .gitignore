@@ -52,3 +52,8 @@ nohup.out
 
 # Pruebas locales
 test-output/
+
+# Claves de servicio / credenciales (nunca al repo)
+blog-azurebrains-*.json
+*-service-account*.json
+*-key.json

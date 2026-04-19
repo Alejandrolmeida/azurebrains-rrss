@@ -1,4 +1,4 @@
-"""Generador de copy por plataforma usando Azure OpenAI gpt-4o-mini."""
+"""Generador de copy por plataforma usando Azure OpenAI gpt-4.1."""
 from __future__ import annotations
 
 import logging
@@ -48,7 +48,7 @@ class CopyGenerator:
             api_key=os.environ["AZURE_OPENAI_API_KEY"],
             api_version="2024-02-01",
         )
-        self._model = os.getenv("AZURE_OPENAI_COPY_MODEL", "gpt-4o-mini")
+        self._model = os.getenv("AZURE_OPENAI_COPY_MODEL", "gpt-4.1")
 
     async def generate(self, item: dict[str, Any], platform: str) -> str:
         prompt_template = _PROMPTS.get(platform)
